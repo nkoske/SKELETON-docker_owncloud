@@ -1,52 +1,38 @@
-version: '2'
+# ownCloud with MariaDB/MySQL
+#
+# Access via "http://localhost:8080" (or "http://$(docker-machine ip):8080" if using docker-machine)
+#
+# During initial ownCloud setup, select "Storage & database" --> "Configure the database" --> "MySQL/MariaDB"
+# Database user: root
+# Database password: example
+# Database name: pick any name
+# Database host: replace "localhost" with "mysql"
+
+
+#-v /<mydatalocation>/apps:/var/www/html/apps installed / modified apps
+#-v /<mydatalocation>/config:/var/www/html/config local configuration
+#-v /<mydatalocation>/data:/var/www/html/data the actual data of your ownCloud
+
+
+version: '3.1'
 
 services:
-  postgresql:
-    restart: always
-    image: sameersbn/postgresql:9.6-4
-    environment:
-    - DB_USER=owncloud
-    - DB_PASS=password
-    - DB_NAME=owncloud_db
-    volumes:
-    - ./data/postgresql:/var/lib/postgresql
 
   owncloud:
+    image: owncloud
     restart: always
-    image: sameersbn/owncloud:10.0.10-0
-    command: app:owncloud
-    environment:
-    - DEBUG=false
-    - TZ=Asia/Kolkata
-
-    - DB_TYPE=pgsql
-    - DB_HOST=postgresql
-    - DB_USER=owncloud
-    - DB_PASS=password
-    - DB_NAME=owncloud_db
-
-    - OWNCLOUD_URL=http://cloud.example.com:10080
-
-    - OWNCLOUD_ADMIN_USER=test
-    - OWNCLOUD_ADMIN_PASSWORD=test
-
-    - OWNCLOUD_UPLOAD_MAX_FILESIZE=4G
-    - OWNCLOUD_MAX_FILE_UPLOADS=20
-
-    - OWNCLOUD_BACKUPS_EXPIRY=0
-    depends_on:
-    - postgresql
-    volumes:
-    - ./data/owncloud:/var/lib/owncloud
-
-  nginx:
-    restart: always
-    image: sameersbn/owncloud:10.0.10-0
-    command: app:nginx
-    environment:
-    - OWNCLOUD_PHP_FPM_HOST=owncloud
-    - OWNCLOUD_PHP_FPM_PORT=9000
-    depends_on:
-    - owncloud
     ports:
-    - "10080:80"
+      - 8088:80
+    volumes:
+      - ./data/apps:/var/www/html/apps
+      - ./data/config:/var/www/html/config 
+      - ./data/data:/var/www/html/data
+      
+
+  mysql:
+    image: mariadb
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: example
+    volumes:
+      - ./data/sql/:/var/lib/mysql
